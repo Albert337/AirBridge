@@ -1,0 +1,9 @@
+{
+  "name": "airbridge",
+  "version": "1.4.1",
+  "private": true,
+  "description": "Browser based bidirectional file transfer with LAN QR pairing and WebRTC",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "express": "^5.1.0", "qrcode": "^1.5.4", "ws": "^8.18.3" }
+}
