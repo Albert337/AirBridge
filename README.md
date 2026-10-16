@@ -1,78 +1,104 @@
-# AirBridge 使用说明书
+# AirBridge
 
-AirBridge 是一款基于 WebRTC、浏览器直接运行的局域网双向文件互传工具，通过串行队列与接收 ACK 确认修复多文件传输假完成问题，支持扫码配对、批量传输与自定义下载目录。
+AirBridge 是一个局域网文件互传工具。电脑启动后，手机扫描二维码即可连接；文件通过 WebRTC 在设备间直接传输，不上传到云端。
 
-## 核心功能
+## 最简单的用法（推荐）
 
-- **发送队列串行化**：一次只发送一个文件，避免多个 `sendFile()` 并发把 `file-start / binary / file-end` 消息交错发送，从根源杜绝消息混乱问题。
+电脑和手机需要连接同一个 Wi-Fi。
 
-- **接收端按当前文件严格接收**：优化接收逻辑，每个文件的二进制块不会再被下一个文件覆盖，保障文件数据完整性。
+### Windows
 
-- **接收确认 ACK**：接收端真正组装完成 Blob 文件数据后，才会向发送端回传 `file-complete` 完成信号，杜绝虚假完成反馈。
+1. 解压 `AirBridge-windows-latest`。
+2. 双击 `AirBridge.exe`，浏览器会自动打开。
+3. 手机扫描网页上的二维码。
+4. 两端都可以选择文件并发送；手机收到文件后，点击“下载文件”保存。
 
-- **发送端完成状态以后端 ACK 为准**：发送端不再以 WebRTC 缓冲区写入完成作为判定依据，仅接收端确认完成后才显示“发送完成”，同步收发两端状态。
+如果手机打不开二维码地址，请右键 `Allow Firewall Access.bat`，选择“以管理员身份运行”，然后重新启动 AirBridge。
 
-- **DataChannel 流控**：借助 `bufferedAmountLowThreshold` \+ `bufferedAmount` 精准控制发送窗口，有效降低移动端缓存堆积、传输卡死的概率。
+### macOS
 
-- **32 KiB 分块传输**：适配手机浏览器运行特性，兼顾移动端兼容性与整体传输吞吐效率。
+1. Apple 芯片（M1/M2/M3/M4 等）使用 `AirBridge-darwin-arm64`，Intel 芯片使用 `AirBridge-darwin-x64`。
+2. 双击 `Start AirBridge.command`。
+3. 如果不能双击，先在该目录打开终端并执行 `chmod +x AirBridge "Start AirBridge.command"`，再右键启动脚本选择“打开”。
+4. 浏览器打开后，用手机扫描二维码。
 
-- 保留原有全部实用功能：支持 A → B / B → A 双向分栏传输、记录清理、批量下载、指定下载文件夹等功能。
+### Linux
 
-## 启动部署教程
+进入解压目录后运行：
 
-### 1\. 环境安装（首次启动必做）
-
-项目基于 Node\.js 运行，首次使用需先安装项目依赖，打开终端进入项目根目录，执行以下命令完成依赖安装：
-
-```Plain Text
-npm install
+```bash
+chmod +x AirBridge start-airbridge.sh
+./start-airbridge.sh
 ```
 
-### 2\. 项目启动
+终端出现 `按 Ctrl+C 退出` 即表示启动成功。
 
-依赖安装完成后，执行启动命令运行服务：
+## 命令行选项
 
-```Plain Text
+```text
+AirBridge.exe --help                 查看帮助（Windows）
+./AirBridge --help                   查看帮助（Linux/macOS）
+AirBridge.exe --port 9000            指定端口
+AirBridge.exe --lan-ip 192.168.1.20  指定手机可访问的网卡地址
+AirBridge.exe --no-open              不自动打开浏览器
+```
+
+默认使用端口 `8787`。如果已被占用，会自动尝试 `8788` 至 `8797`；重复启动时会复用已经运行的 AirBridge，不再报 `EADDRINUSE`。
+
+## 从源码运行
+
+需要先安装 [Node.js 22 或更高版本](https://nodejs.org/)：
+
+```bash
+npm install
 npm start
 ```
 
-### 3\. 端口占用解决方法
+常用示例：
 
-若启动提示 8787 端口被旧 Node 进程占用，可通过以下命令查询并终止占用进程：
-
-```Plain Text
-netstat -ano | findstr :8787
-taskkill /PID <PID> /F
+```bash
+npm start -- --port 9000
+npm start -- --lan-ip 192.168.1.20
+npm start -- --no-open
 ```
 
-### 4\. 防火墙权限配置（Windows 首次使用）
+停止服务：回到运行窗口，按 `Ctrl+C`。
 
-首次在 Windows 系统使用时，右键项目内的 `allow-firewall-windows.bat` 文件，选择**以管理员身份运行**，放行设备局域网传输权限，避免被防火墙拦截连接。
+## 自己构建安装包
 
-## 手机设备连接教程
+```bash
+npm ci
+npm test
+npm run build
+```
 
-本工具基于局域网直连传输，需保证设备网络互通，具体连接步骤如下：
+`npm run build` 生成当前系统的成品。要在一台电脑上同时生成 Windows x64、Linux x64、macOS Intel 和 macOS Apple 芯片四套成品，运行：
 
-1. 电脑端启动服务后，打开浏览器访问 `http://localhost:8787`；
+```bash
+npm run build:all
+```
 
-2. 确认页面展示二维码，链接格式需为 `http://192.168.1.xxx:8787/?room=xxxxxx` 局域网地址；
+首次运行会从 Node.js 官网下载对应系统的运行文件并校验 SHA-256，成品位于 `dist/AirBridge-系统名-架构/`。跨平台生成的 macOS 文件会在首次启动时自动执行本机 ad-hoc 签名。
 
-3. 将手机与电脑连接**同一个 Wi\-Fi 局域网**；
+也可以推送 `v*` 标签或手动运行 GitHub Actions 的 `Build AirBridge` 工作流，让三个系统分别原生构建。
 
-4. 手机直接扫描页面二维码完成配对连接，即可双向传输文件；
+## 发布到 GitHub
 
-5. 若二维码无法打开，手机可手动访问二维码下方展示的 LAN 地址，同时可访问 `/health`路径测试服务是否正常连通。
+仓库只提交源码、测试和构建脚本；`node_modules/`、`build/`、`dist/`、`release/` 均不会进入 Git。正式版本将 `dist` 中各平台目录压缩后，作为 GitHub Release 附件上传，不要把大型可执行文件直接提交到仓库。
 
-补充说明：传输完成状态统一以手机接收端 ACK 确认信号为准，杜绝发送端虚假完成提示。
+## 常见问题
 
-## 下载目录说明
+- **手机显示无法访问**：确认手机和电脑连接同一个 Wi-Fi，并关闭访客网络或 AP 隔离；Windows 还需允许防火墙访问。
+- **二维码中的 IP 不对**：电脑有多个网卡时，用 `--lan-ip` 指定和手机同网段的 IPv4。`127.0.0.1` 只代表本机，不会用于手机二维码。
+- **iPhone 收到但找不到文件**：在 Safari 中点击“下载文件”，然后到“文件”App 的“下载项”中查看；传输时尽量让 Safari 保持在前台。
+- **端口仍然冲突**：显式换一个端口，例如 `--port 9000`；同时记得在防火墙中允许该端口。
+- **没有二维码**：确认电脑已经连接局域网。也可运行 `ipconfig`（Windows）或 `ip addr`（Linux/macOS）查看 IPv4，再用 `--lan-ip` 指定。
 
-- 桌面端（最新版 Chrome / Edge 浏览器）：支持点击「选择下载文件夹」，授权后可将文件批量写入自定义指定文件夹；
+## 功能说明
 
-- 手机端浏览器：受系统权限限制，无法自定义系统目录，传输的文件会默认保存至手机系统公共下载文件夹。
-
-## 网络传输能力说明
-
-AirBridge v1\.4 版本仅支持**同一局域网内** WebRTC 点对点直连传输，无需公网资源、传输速度快、延迟低。
-
-若需实现**跨网络、外网远程传输**，需额外配置公网信令服务（Signaling）\+ STUN \+ TURN 穿透服务，当前版本暂未内置该能力。
+- 电脑与手机双向、多文件传输
+- 二维码快速配对
+- 32 KiB 分块、流量控制和接收确认，改善移动端稳定性
+- iPhone/iPad Safari 下载兼容
+- 桌面 Chrome/Edge 可选择下载目录；不支持时自动使用浏览器下载
+- 仅限局域网直连，不包含公网中转或 TURN 服务

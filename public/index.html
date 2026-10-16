@@ -5,31 +5,124 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AirBridge · 跨设备文件互传</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f7fb;color:#18202a}.wrap{max-width:920px;margin:0 auto;padding:28px 18px}.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.brand h1{margin:0;font-size:30px}.brand p{margin:8px 0;color:#697586}.status{padding:8px 12px;border-radius:999px;background:#fff;border:1px solid #dfe4ec;font-size:13px}.grid{display:grid;grid-template-columns:340px 1fr;gap:18px;margin-top:20px}.card{background:#fff;border:1px solid #e1e6ee;border-radius:18px;padding:20px;box-shadow:0 8px 30px rgba(20,30,50,.05)}h2{font-size:17px;margin:0 0 14px}.qr{display:flex;justify-content:center;min-height:280px;align-items:center;background:#fafbfc;border-radius:12px}.qr img{width:280px;height:280px}.code{font-size:28px;font-weight:800;letter-spacing:7px;text-align:center;margin:12px 0}.hint{font-size:13px;color:#718096;line-height:1.6;text-align:center}.url{font-size:11px;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;padding:8px;border-radius:8px;word-break:break-all;margin-top:10px;text-align:center}.manual{display:flex;gap:8px;margin-top:12px}.manual input{flex:1;border:1px solid #d8dee8;border-radius:10px;padding:10px;font-size:16px}.btn{border:0;border-radius:10px;padding:10px 14px;background:#4f67ff;color:white;cursor:pointer;font-weight:650}.btn.secondary{background:#edf1ff;color:#3e50b8}.btn:disabled{opacity:.5;cursor:not-allowed}.drop{border:2px dashed #cbd5e1;border-radius:15px;padding:35px 15px;text-align:center;cursor:pointer;transition:.15s}.drop:hover,.drop.over{background:#f5f8ff;border-color:#6b7cff}.drop strong{display:block;font-size:18px}.drop span{display:block;color:#7a8797;margin-top:7px;font-size:13px}.files{margin-top:15px;display:flex;flex-direction:column;gap:9px}.transfer-section{margin-top:18px}.transfer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.transfer-title{font-weight:750;font-size:14px}.transfer-actions{display:flex;gap:7px;flex-wrap:wrap}.mini{padding:7px 10px;font-size:12px}.empty{padding:16px;border:1px dashed #d8dee8;border-radius:11px;color:#8a95a5;text-align:center;font-size:12px}.downloaded{border-color:#c9e8d4;background:#f4fbf6}.file{border:1px solid #e5e9f0;border-radius:11px;padding:10px}.row{display:flex;justify-content:space-between;gap:10px}.bar{height:7px;background:#edf0f4;border-radius:99px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;width:0;background:#4f67ff}.meta{font-size:12px;color:#7b8794;margin-top:5px}.peer{padding:11px;border-radius:10px;background:#f6f8fb;margin-bottom:12px}.ok{color:#16803c}.warn{color:#a05a00}.error{color:#c2410c;background:#fff7ed;border-color:#fed7aa}.note{font-size:12px;color:#8a95a5;margin-top:12px;line-height:1.6}.network{font-size:12px;color:#64748b;margin-top:12px;padding:10px;border-radius:10px;background:#f8fafc}.network b{color:#334155}.queue{font-size:12px;color:#64748b;margin-top:9px;line-height:1.5}.progress-text{font-size:12px;color:#64748b;margin-top:5px}@media(max-width:720px){.grid{grid-template-columns:1fr}.hero{align-items:center}.qr{min-height:250px}.qr img{width:250px;height:250px}}
+:root{color-scheme:light;--bg:#f8fafc;--surface:#fff;--surface-muted:#f1f5fd;--surface-strong:#e8effc;--text:#0f172a;--muted:#475569;--subtle:#64748b;--border:#dce6f7;--primary:#2563eb;--primary-hover:#1d4ed8;--primary-soft:#eaf1ff;--success:#15803d;--warning:#a16207;--danger:#c2410c;--ring:#2563eb;--radius-lg:20px;--radius-md:12px;--motion:180ms ease}
+*{box-sizing:border-box}
+html{min-width:320px;background:var(--bg)}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input{font:inherit}
+button{touch-action:manipulation}
+.skip-link{position:fixed;top:8px;left:8px;z-index:10;padding:9px 12px;border-radius:9px;background:var(--primary);color:#fff;font-weight:700;transform:translateY(-160%);transition:transform var(--motion)}
+.skip-link:focus{transform:translateY(0)}
+.wrap{width:min(1080px,100%);margin:0 auto;padding:max(32px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(36px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px}
+.brand-lockup{display:flex;align-items:center;gap:14px;min-width:0}
+.brand-mark{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border-radius:14px;background:var(--primary);color:#fff}
+.brand-mark svg{width:27px;height:27px}
+.brand{min-width:0}
+.eyebrow{margin:0 0 2px;color:var(--primary);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.brand h1{margin:0;font-size:clamp(25px,4vw,32px);line-height:1.1;letter-spacing:-.035em}
+.brand p{margin:5px 0 0;color:var(--muted);font-size:14px}
+.status{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 13px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--muted);font-size:13px;font-weight:650;white-space:nowrap}
+.status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--subtle)}
+.status.ok{color:var(--success);border-color:#bbf7d0;background:#f0fdf4}
+.status.ok::before{background:var(--success)}
+.status.warn{color:var(--warning);border-color:#fde68a;background:#fffbeb}
+.status.warn::before{background:var(--warning)}
+.grid{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);align-items:start;gap:20px}
+.card{min-width:0;padding:22px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface)}
+.section-heading{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.section-heading.spread{justify-content:space-between}
+.section-title{display:flex;align-items:center;gap:10px;min-width:0}
+.step{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:13px;font-weight:800}
+h2{margin:0;font-size:17px;line-height:1.3;letter-spacing:-.01em}
+.qr{display:flex;align-items:center;justify-content:center;min-height:284px;padding:12px;border:1px solid var(--border);border-radius:16px;background:#fff}
+.qr img{display:block;width:min(100%,260px);height:auto;aspect-ratio:1}
+.code{margin:14px 0 4px;color:var(--text);font-variant-numeric:tabular-nums;font-size:28px;font-weight:800;letter-spacing:.18em;text-align:center}
+.hint{color:var(--muted);font-size:13px;line-height:1.6;text-align:center}
+.url{margin-top:12px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-muted);color:var(--subtle);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;line-height:1.5;text-align:center;word-break:break-all}
+.field-label{display:block;margin:14px 0 6px;color:var(--text);font-size:12px;font-weight:700}
+.manual{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.manual input{width:100%;min-height:44px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-size:16px;outline:none}
+.manual input::placeholder{color:var(--subtle)}
+.manual input:focus{border-color:var(--ring);box-shadow:0 0 0 3px rgb(37 99 235 / .18)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 15px;border:1px solid transparent;border-radius:10px;background:var(--primary);color:#fff;cursor:pointer;font-weight:700;line-height:1.2;transition:background var(--motion),border-color var(--motion),color var(--motion),opacity var(--motion)}
+.btn:hover{background:var(--primary-hover)}
+.btn:active{opacity:.8}
+.btn.secondary{border-color:var(--border);background:var(--surface);color:var(--muted)}
+.btn.secondary:hover{border-color:#b8c8e5;background:var(--surface-muted);color:var(--text)}
+.btn:disabled{cursor:not-allowed;opacity:.45}
+.btn:focus-visible,.pick-button:focus-visible{outline:3px solid rgb(37 99 235 / .35);outline-offset:2px}
+.mini{min-height:36px;padding:7px 10px;font-size:12px}
+.network{margin-top:12px;padding:11px 12px;border-radius:10px;background:var(--surface-muted);color:var(--subtle);font-size:12px;line-height:1.55}
+.network b{color:var(--text)}
+.note{margin-top:11px;color:var(--subtle);font-size:12px;line-height:1.6}
+.peer{margin-bottom:14px;padding:13px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface-muted);color:var(--muted);font-size:13px;line-height:1.55}
+.peer b{font-size:14px}
+.drop{padding:28px 16px;border:2px dashed #b8c8e5;border-radius:16px;background:var(--surface-muted);text-align:center;transition:background var(--motion),border-color var(--motion)}
+.drop.over{border-color:var(--primary);background:var(--primary-soft)}
+.pick-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:160px;min-height:48px;padding:11px 20px;border:0;border-radius:11px;background:var(--primary);color:#fff;cursor:pointer;font-weight:750;transition:background var(--motion),opacity var(--motion)}
+.pick-button:hover{background:var(--primary-hover)}
+.pick-button:active{opacity:.8}
+.pick-button svg{width:20px;height:20px}
+.drop-copy{display:block;margin-top:10px;color:var(--muted);font-size:13px}
+.queue{margin-top:10px;color:var(--subtle);font-size:12px;line-height:1.5}
+.transfer-section{margin-top:22px}
+.transfer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.transfer-title{color:var(--text);font-size:14px;font-weight:750}
+.transfer-actions{display:flex;gap:8px;flex-wrap:wrap}
+.files{display:flex;flex-direction:column;gap:9px}
+.empty{padding:18px;border:1px dashed var(--border);border-radius:var(--radius-md);color:var(--subtle);font-size:12px;text-align:center}
+.file{padding:12px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface)}
+.file .row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.file .row b{min-width:0;overflow:hidden;color:var(--text);font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.file .row span{flex:0 0 auto;padding:2px 7px;border-radius:999px;background:var(--surface-muted);color:var(--subtle);font-size:11px}
+.bar{height:6px;margin-top:10px;overflow:hidden;border-radius:999px;background:var(--surface-strong)}
+.bar i{display:block;width:0;height:100%;border-radius:inherit;background:var(--primary);transition:width 120ms linear}
+.meta{margin-top:6px;color:var(--subtle);font-size:12px}
+.downloaded{border-color:#bbf7d0;background:#f7fef9}
+.ok{color:var(--success)}
+.warn{color:var(--warning)}
+.error{border-color:#fed7aa;background:#fff7ed;color:var(--danger)}
+.trust-note{display:flex;align-items:center;justify-content:center;gap:8px;margin:20px auto 0;color:var(--subtle);font-size:12px;text-align:center}
+.trust-note svg{flex:0 0 auto;width:16px;height:16px;color:var(--primary)}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#0b1120;--surface:#111827;--surface-muted:#172033;--surface-strong:#26344d;--text:#f8fafc;--muted:#cbd5e1;--subtle:#94a3b8;--border:#2a3952;--primary:#3b82f6;--primary-hover:#60a5fa;--primary-soft:#172554;--success:#4ade80;--warning:#fbbf24;--danger:#fb923c;--ring:#60a5fa}.status.ok{border-color:#166534;background:#052e16}.status.warn{border-color:#854d0e;background:#422006}.manual input:focus{box-shadow:0 0 0 3px rgb(96 165 250 / .25)}.btn:focus-visible,.pick-button:focus-visible{outline-color:rgb(96 165 250 / .45)}.downloaded{border-color:#166534;background:#0d2519}.error{border-color:#9a3412;background:#431407}}
+@media (max-width:760px){.wrap{padding-top:max(22px,env(safe-area-inset-top))}.hero{align-items:flex-start;margin-bottom:18px}.brand-mark{flex-basis:44px;width:44px;height:44px;border-radius:13px}.brand p{font-size:13px}.status{max-width:120px;min-height:36px;padding:7px 10px;font-size:12px;text-align:center;white-space:normal}.grid{grid-template-columns:1fr}.card{padding:18px}.qr{min-height:0}.qr img{width:min(100%,250px)}.drop{padding:24px 12px}.pick-button{width:min(100%,260px)}.mini{min-height:44px}.transfer-head{align-items:flex-start}.transfer-actions{justify-content:flex-end}}
+@media (max-width:430px){.wrap{padding-right:14px;padding-left:14px}.hero{gap:12px}.brand-mark{display:none}.card{padding:16px;border-radius:16px}.section-heading.spread{align-items:flex-start}.section-heading.spread .btn{max-width:112px}.manual{grid-template-columns:1fr}.manual .btn{width:100%}.transfer-head{flex-direction:column}.transfer-actions{width:100%}.transfer-actions .btn{flex:1}.code{font-size:25px}.hint br{display:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="hero">
-    <div class="brand"><h1>AirBridge</h1><p>不用安装 App · 浏览器双向文件互传</p></div>
-    <div id="status" class="status">正在连接信令服务…</div>
-  </div>
+<a class="skip-link" href="#main">跳到主要内容</a>
+<main class="wrap" id="main">
+  <header class="hero">
+    <div class="brand-lockup">
+      <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h11l-3-3m3 3-3 3M17 17H6l3 3m-3-3 3-3"/></svg></div>
+      <div class="brand"><p class="eyebrow">Local peer-to-peer</p><h1>AirBridge</h1><p>无需安装 App，在同一网络中安全互传文件</p></div>
+    </div>
+    <div id="status" class="status" role="status" aria-live="polite">正在连接信令服务…</div>
+  </header>
   <div class="grid">
-    <section class="card">
-      <h2>① 扫码连接</h2>
+    <section class="card" aria-labelledby="connectTitle">
+      <div class="section-heading"><span class="step" aria-hidden="true">1</span><h2 id="connectTitle">连接设备</h2></div>
       <div class="qr"><img id="qr" alt="连接二维码"></div>
-      <div id="code" class="code">------</div>
+      <div id="code" class="code" aria-label="六位房间码">------</div>
       <div class="hint">手机直接用系统相机扫码<br>二维码已自动使用电脑的局域网 IP</div>
       <div id="url" class="url">正在生成连接地址…</div>
-      <div class="manual"><input id="roomInput" maxlength="6" placeholder="输入6位房间码"><button id="joinBtn" class="btn">加入</button></div>
+      <label class="field-label" for="roomInput">或输入房间码</label>
+      <div class="manual"><input id="roomInput" maxlength="6" inputmode="numeric" autocomplete="one-time-code" aria-describedby="network" placeholder="输入 6 位房间码"><button id="joinBtn" class="btn" type="button">加入房间</button></div>
       <div id="network" class="network">正在检测电脑局域网地址…</div>
       <div class="note">如果手机扫码仍提示“无法打开网页”，先让手机和电脑连接同一个 Wi-Fi，然后用手机直接打开上面的连接地址测试。</div>
     </section>
-    <section class="card">
-      <div class="row" style="align-items:center;margin-bottom:14px"><h2 style="margin:0">② 双向传输</h2><button id="clearAll" class="btn secondary mini">清理全部记录</button></div>
-      <div id="peer" class="peer">等待另一台设备加入…</div>
-      <label id="drop" class="drop"><strong>选择文件或拖拽到这里</strong><span>连接建立后，双方都可以发送；多个文件会自动排队，避免传输交错</span><input id="picker" type="file" multiple hidden></label>
-      <div id="queueInfo" class="queue">发送队列：0 个文件 · 当前：空闲</div>
+    <section class="card" aria-labelledby="transferTitle">
+      <div class="section-heading spread"><div class="section-title"><span class="step" aria-hidden="true">2</span><h2 id="transferTitle">双向传输</h2></div><button id="clearAll" class="btn secondary mini" type="button">清理全部记录</button></div>
+      <div id="peer" class="peer" role="status" aria-live="polite">等待另一台设备加入…</div>
+      <div id="drop" class="drop">
+        <button id="pickBtn" class="pick-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/></svg>选择文件</button>
+        <span class="drop-copy">也可以将文件拖拽到此区域 · 多个文件会自动排队</span>
+        <input id="picker" type="file" multiple hidden>
+      </div>
+      <div id="iosHint" class="note" hidden>iPhone / iPad 接收完成后，请点“下载文件”，然后在 Safari 下载列表或“文件”App 的“下载项”中查看。传输期间尽量保持 Safari 在前台。</div>
+      <div id="queueInfo" class="queue" role="status" aria-live="polite">发送队列：0 个文件 · 当前：空闲</div>
       <div class="transfer-section">
         <div class="transfer-head">
           <div class="transfer-title">本机 → 对端 · 我发送</div>
@@ -46,28 +139,51 @@
       </div>
     </section>
   </div>
-</div>
+  <div class="trust-note"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>文件通过 WebRTC 点对点传输，不会上传到服务器</span></div>
+</main>
 <script>
 const $=id=>document.getElementById(id);
 let ws,room=new URLSearchParams(location.search).get('room')||'',peer=null,dc=null,connected=false;
-const CHUNK=32*1024;
-const HIGH_WATER=1024*1024;
-const LOW_WATER=256*1024;
+const IS_IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+// 16 KiB avoids Safari/WebKit DataChannel failures seen with larger application messages.
+const CHUNK=16*1024;
+const HIGH_WATER=512*1024;
+const LOW_WATER=64*1024;
 const transfers=new Map();
 const sendQueue=[];
 let sending=false;
 let incoming=null;
 const pendingAcks=new Map();
+let pendingIce=[];
+let receiveChain=Promise.resolve();
+if(IS_IOS)$('iosHint').hidden=false;
 
 function setStatus(t,cls=''){ $('status').textContent=t; $('status').className='status '+cls; }
 function wsUrl(){return `${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws`}
 function signal(data){if(ws?.readyState===1)ws.send(JSON.stringify({type:'signal',data}))}
+async function flushPendingIce(pc){
+ const queued=pendingIce;pendingIce=[];
+ for(const candidate of queued){try{await pc.addIceCandidate(candidate)}catch(e){console.warn('ICE candidate rejected',e)}}
+}
+async function addRemoteIce(candidate){
+ if(!peer||!peer.remoteDescription){pendingIce.push(candidate);return;}
+ try{await peer.addIceCandidate(candidate)}catch(e){console.warn('ICE candidate rejected',e)}
+}
+function resetPeer(message='等待另一台设备加入…'){
+ connected=false;incoming=null;pendingIce=[];
+ if(dc){dc.onopen=dc.onclose=dc.onerror=dc.onmessage=null;try{dc.close()}catch{}dc=null;}
+ if(peer){peer.onicecandidate=peer.onconnectionstatechange=peer.ondatachannel=null;try{peer.close()}catch{}peer=null;}
+ for(const [id,waiter] of pendingAcks){clearTimeout(waiter.timer);waiter.reject(new Error('连接已断开'));pendingAcks.delete(id)}
+ $('peer').textContent=message;
+}
 function createPC(initiator){
+ if(peer)resetPeer('正在重新建立 P2P 连接…');
  const pc=new RTCPeerConnection({iceServers:[]});
  pc.onicecandidate=e=>{if(e.candidate)signal({kind:'ice',candidate:e.candidate})};
  pc.onconnectionstatechange=()=>{
    if(pc.connectionState==='connected'){connected=true;setStatus('已建立 P2P 连接','ok');$('peer').innerHTML='<b class="ok">● 设备已连接</b><br>可以双向发送文件';}
-   if(['failed','disconnected','closed'].includes(pc.connectionState)){connected=false;setStatus('P2P 连接已断开','warn');}
+   if(pc.connectionState==='failed'){setStatus('P2P 连接失败，正在等待重连','warn');resetPeer('P2P 连接失败，请让对端刷新页面重试');}
+   if(['disconnected','closed'].includes(pc.connectionState)){connected=false;setStatus('P2P 连接已断开','warn');}
  };
  if(initiator){const ch=pc.createDataChannel('files',{ordered:true});setupChannel(ch);pc.createOffer().then(o=>pc.setLocalDescription(o)).then(()=>signal({kind:'offer',sdp:pc.localDescription}));}
  pc.ondatachannel=e=>setupChannel(e.channel); peer=pc; return pc;
@@ -77,13 +193,15 @@ function setupChannel(ch){
  ch.onopen=()=>{connected=true;setStatus('已建立 P2P 连接','ok');$('peer').innerHTML='<b class="ok">● 设备已连接</b><br>可以双向发送文件';};
  ch.onclose=()=>{connected=false;setStatus('P2P 连接已关闭','warn')};
  ch.onerror=()=>setStatus('P2P 数据通道异常','warn');
- ch.onmessage=handleData;
+ // Safari may deliver binary data as Blob. Serializing handlers also ensures file-end
+ // cannot overtake an asynchronous Blob -> ArrayBuffer conversion.
+ ch.onmessage=e=>{receiveChain=receiveChain.then(()=>handleData(e)).catch(err=>{console.error(err);setStatus('接收数据失败：'+err.message,'warn')})};
 }
 function sendControl(obj){if(dc?.readyState==='open')dc.send(JSON.stringify(obj));}
 function removeEmpty(container){const e=container.querySelector('.empty');if(e)e.remove();}
 function ensureEmpty(container,msg){if(!container.children.length)container.innerHTML=`<div class="empty">${msg}</div>`;}
 function makeId(){return Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
-function handleData(e){
+async function handleData(e){
  if(typeof e.data==='string'){
    let m;try{m=JSON.parse(e.data)}catch{return;}
    if(m.type==='file-start'){
@@ -92,8 +210,9 @@ function handleData(e){
        // 对异常/旧客户端，主动结束旧状态，避免后续所有 chunk 被错误归属。
        const old=transfers.get(incoming.id);if(old&&old.status==='receiving')old.status='error';
      }
-     incoming={name:m.name,size:m.size,received:0,parts:[],id:m.id};
-     transfers.set(m.id,{id:m.id,name:m.name,size:m.size,received:0,direction:'received',status:'receiving',blob:null});
+      if(typeof m.id!=='string'||typeof m.name!=='string'||!Number.isSafeInteger(m.size)||m.size<0){sendControl({type:'file-error',id:m.id,message:'文件信息无效'});return;}
+      incoming={name:m.name,size:m.size,type:typeof m.mime==='string'?m.mime:'',received:0,parts:[],id:m.id};
+      transfers.set(m.id,{id:m.id,name:m.name,size:m.size,type:incoming.type,received:0,direction:'received',status:'receiving',blob:null});
      addFileUI(m.id,m.name,m.size,true); updateFileUI(m.id,0,m.size);
    } else if(m.type==='file-end'){
      if(!incoming||incoming.id!==m.id)return;
@@ -105,7 +224,7 @@ function handleData(e){
        sendControl({type:'file-error',id:current.id,message:'接收数据不完整'});
        incoming=null;return;
      }
-     const blob=new Blob(current.parts);
+      const blob=new Blob(current.parts,{type:current.type||'application/octet-stream'});
      if(item){item.blob=blob;item.status='complete';item.received=current.size;}
      updateFileUI(current.id,current.size,current.size);
      markReceivedComplete(current.id);
@@ -118,8 +237,14 @@ function handleData(e){
      const waiter=pendingAcks.get(m.id);if(waiter){clearTimeout(waiter.timer);pendingAcks.delete(m.id);waiter.reject(new Error(m.message||'接收端报告失败'));}
      updateFileStatus(m.id,m.message||'对端接收失败','warn');
    }
- } else if(incoming){
-   incoming.parts.push(e.data);incoming.received+=e.data.byteLength;
+  } else if(incoming){
+    const part=e.data instanceof Blob?await e.data.arrayBuffer():e.data;
+    const length=part?.byteLength;
+    if(!Number.isFinite(length)||incoming.received+length>incoming.size){
+      const id=incoming.id;const item=transfers.get(id);if(item)item.status='error';
+      updateFileStatus(id,'接收异常：数据超过声明大小','warn');sendControl({type:'file-error',id,message:'接收数据越界'});incoming=null;return;
+    }
+    incoming.parts.push(part);incoming.received+=length;
    const item=transfers.get(incoming.id);if(item)item.received=incoming.received;
    updateFileUI(incoming.id,incoming.received,incoming.size);
  }
@@ -132,26 +257,29 @@ function addFileUI(id,name,size,recv=false){
 }
 function updateFileUI(id,n,total){const d=document.querySelector(`[data-id="${CSS.escape(id)}"]`);if(!d)return;d.querySelector('i').style.width=Math.min(100,total?n/total*100:0)+'%';d.querySelector('.meta').textContent=`${format(n)} / ${format(total)} · ${Math.round(total?n/total*100:0)}%`}
 function updateFileStatus(id,text,cls=''){const d=document.querySelector(`[data-id="${CSS.escape(id)}"]`);if(!d)return;const meta=d.querySelector('.meta');meta.textContent=text;meta.className='meta '+cls;}
-function markReceivedComplete(id){const item=transfers.get(id);const d=document.querySelector(`[data-id="${CSS.escape(id)}"]`);if(!d||!item)return;d.classList.add('downloaded');d.querySelector('.file-actions').innerHTML=`<button class="btn secondary mini" onclick="downloadOne('${id}')">下载</button>`;updateFileStatus(id,`${format(item.size)} · 接收完成`,'ok')}
+function markReceivedComplete(id){const item=transfers.get(id);const d=document.querySelector(`[data-id="${CSS.escape(id)}"]`);if(!d||!item)return;d.classList.add('downloaded');d.querySelector('.file-actions').innerHTML=`<button class="btn secondary mini" type="button" onclick="downloadOne('${id}')">下载文件</button>`;updateFileStatus(id,`${format(item.size)} · 接收完成`,'ok')}
 function format(n){if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(1)+' KB';if(n<1073741824)return(n/1048576).toFixed(1)+' MB';return(n/1073741824).toFixed(2)+' GB'}
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function waitForBuffer(){
  if(!dc||dc.readyState!=='open')return Promise.reject(new Error('数据通道未连接'));
  if(dc.bufferedAmount<=HIGH_WATER)return Promise.resolve();
- return new Promise(resolve=>{
-   let done=false;
-   const finish=()=>{if(done)return;done=true;clearInterval(timer);dc.removeEventListener('bufferedamountlow',finish);resolve();};
-   const timer=setInterval(()=>{if(!dc||dc.readyState!=='open'||dc.bufferedAmount<=LOW_WATER)finish();},20);
-   dc.addEventListener('bufferedamountlow',finish,{once:true});
+  return new Promise((resolve,reject)=>{
+    let done=false;
+    const cleanup=()=>{clearInterval(timer);if(dc)dc.removeEventListener('bufferedamountlow',onLow)};
+    const finish=()=>{if(done)return;done=true;cleanup();resolve();};
+    const fail=()=>{if(done)return;done=true;cleanup();reject(new Error('数据通道已断开'));};
+    const onLow=()=>finish();
+    const timer=setInterval(()=>{if(!dc||dc.readyState!=='open')fail();else if(dc.bufferedAmount<=LOW_WATER)finish();},25);
+    dc.addEventListener('bufferedamountlow',onLow,{once:true});
  });
 }
 function waitForAck(id,timeout=120000){return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pendingAcks.delete(id);reject(new Error('等待接收端确认超时'))},timeout);pendingAcks.set(id,{resolve,reject,timer});});}
 async function sendFile(file){
  if(!dc||dc.readyState!=='open')throw new Error('请先等待另一台设备连接');
  const id=makeId();
- transfers.set(id,{id,name:file.name,size:file.size,received:0,direction:'sent',status:'sending',blob:file});
- addFileUI(id,file.name,file.size,false);updateFileStatus(id,'等待接收端确认…');
- sendControl({type:'file-start',id,name:file.name,size:file.size});
+  transfers.set(id,{id,name:file.name,size:file.size,type:file.type,received:0,direction:'sent',status:'sending',blob:file});
+  addFileUI(id,file.name,file.size,false);updateFileStatus(id,'正在发送…');
+  sendControl({type:'file-start',id,name:file.name,size:file.size,mime:file.type||''});
  let off=0;
  while(off<file.size){
    await waitForBuffer();
@@ -174,15 +302,15 @@ async function processQueue(){
 }
 function enqueueFiles(files){if(!connected||!dc||dc.readyState!=='open')return alert('请先等待另一台设备连接');sendQueue.push(...files);updateQueueInfo('排队中');processQueue();}
 function updateQueueInfo(current='空闲'){ $('queueInfo').textContent=`发送队列：${sendQueue.length} 个文件 · 当前：${sending?(current==='排队中'?'发送中…':current):'空闲'}`;}
-function browserDownload(item){const url=URL.createObjectURL(item.blob);const a=document.createElement('a');a.href=url;a.download=item.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
-window.downloadOne=async function(id){const item=transfers.get(id);if(!item?.blob)return alert('文件尚未接收完成');browserDownload(item)};
+function browserDownload(item){const url=URL.createObjectURL(item.blob);const a=document.createElement('a');a.href=url;a.download=item.name;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5*60*1000)}
+window.downloadOne=function(id){const item=transfers.get(id);if(!item?.blob)return alert('文件尚未接收完成');browserDownload(item);updateFileStatus(id,IS_IOS?'已请求下载，请查看 Safari 下载列表':`${format(item.size)} · 已开始下载`,'ok')};
 async function downloadGroup(direction){
- const list=[...transfers.values()].filter(x=>x.direction===direction&&x.status==='complete'&&x.blob);
- if(!list.length)return alert(direction==='sent'?'暂无可下载的发送文件':'暂无可下载的接收文件');
+  const list=[...transfers.values()].filter(x=>x.direction===direction&&x.status==='complete'&&x.blob);
+  if(!list.length)return alert(direction==='sent'?'暂无可下载的发送文件':'暂无可下载的接收文件');
  // 只有“接收端 → 全部下载”时才让用户选择一次目标文件夹，避免页面底部长期占用空间。
  if(direction==='received'){
-   if(!window.showDirectoryPicker){
-     alert('当前浏览器不支持网页直接选择下载文件夹，将使用系统默认下载位置。');
+    if(!window.showDirectoryPicker){
+      if(!IS_IOS)alert('当前浏览器不支持网页直接选择下载文件夹，将使用系统默认下载位置。');
      list.forEach(browserDownload);
      return;
    }
@@ -203,12 +331,12 @@ async function downloadGroup(direction){
  list.forEach(browserDownload);
 }
 function clearTransfers(direction){for(const [id,item] of [...transfers]){if(direction&&item.direction!==direction)continue;if(item.direction==='sent'&&item.status==='sending')continue;transfers.delete(id);const el=document.querySelector(`[data-id="${CSS.escape(id)}"]`);if(el)el.remove()}ensureEmpty($('sentFiles'),'暂无发送记录');ensureEmpty($('receivedFiles'),'暂无接收文件')}
-function join(code){room=String(code).replace(/\D/g,'').slice(0,6);if(room.length!==6)return alert('请输入6位房间码');$('code').textContent=room;history.replaceState(null,'',`/?room=${room}`);if(ws?.readyState===1)ws.send(JSON.stringify({type:'join',room}))}
-async function newRoom(){try{const r=await fetch('/api/room').then(x=>x.json());$('qr').src=r.qr;$('code').textContent=r.code;$('roomInput').value=r.code;room=r.code;$('url').textContent=r.url;$('network').innerHTML=r.lan?.length?'<b>电脑局域网地址：</b>'+r.lan.map(x=>`${x.name}: ${x.address}`).join(' · '):'<span class="warn">未检测到局域网 IPv4</span>';history.replaceState(null,'',`/?room=${room}`);join(room)}catch(e){setStatus('无法生成房间','warn');$('url').textContent='请检查服务器是否正常运行'}}
-function connect(){try{ws=new WebSocket(wsUrl())}catch(e){setStatus('无法连接信令服务','warn');return}ws.onopen=()=>{setStatus('信令服务已连接');if(room)join(room);else newRoom()};ws.onerror=()=>setStatus('信令服务连接失败','warn');ws.onclose=()=>setStatus('信令服务断开','warn');ws.onmessage=async e=>{const m=JSON.parse(e.data);if(m.type==='joined')$('peer').textContent=m.count>1?'正在建立 P2P 连接…':'等待另一台设备加入…';if(m.type==='peer-joined'){if(!peer)createPC(true)}if(m.type==='peer-left'){$('peer').textContent='对方已离开房间';connected=false}if(m.type==='error')$('peer').textContent=m.message;if(m.type==='signal'){if(m.data.kind==='offer'){const pc=createPC(false);await pc.setRemoteDescription(m.data.sdp);const a=await pc.createAnswer();await pc.setLocalDescription(a);signal({kind:'answer',sdp:pc.localDescription})}else if(m.data.kind==='answer'&&peer){await peer.setRemoteDescription(m.data.sdp)}else if(m.data.kind==='ice'&&peer){try{await peer.addIceCandidate(m.data.candidate)}catch{}}}}}
+function join(code){room=String(code).replace(/\D/g,'').slice(0,6);if(room.length!==6)return alert('请输入6位房间码');resetPeer('等待另一台设备加入…');$('code').textContent=room;history.replaceState(null,'',`/?room=${room}`);if(ws?.readyState===1)ws.send(JSON.stringify({type:'join',room}))}
+async function newRoom(){try{const response=await fetch('/api/room');const r=await response.json();if(!response.ok)throw new Error(r.error||'无法生成房间');$('qr').src=r.qr;$('code').textContent=r.code;$('roomInput').value=r.code;room=r.code;$('url').textContent=r.url;$('network').innerHTML=r.lan?.length?'<b>电脑可用 IPv4：</b>'+r.lan.map(x=>`${escapeHtml(x.name)}: ${escapeHtml(x.address)}`).join(' · '):'<span class="warn">未检测到可用 IPv4</span>';history.replaceState(null,'',`/?room=${room}`);join(room)}catch(e){setStatus('无法生成房间','warn');$('qr').removeAttribute('src');$('code').textContent='------';$('url').textContent=e.message;$('network').innerHTML='<span class="warn">不会使用 127.0.0.1 生成无效二维码</span>'}}
+function connect(){try{ws=new WebSocket(wsUrl())}catch(e){setStatus('无法连接信令服务','warn');return}ws.onopen=()=>{setStatus('信令服务已连接');if(room)join(room);else newRoom()};ws.onerror=()=>setStatus('信令服务连接失败','warn');ws.onclose=()=>setStatus('信令服务断开','warn');ws.onmessage=async e=>{const m=JSON.parse(e.data);if(m.type==='joined')$('peer').textContent=m.count>1?'正在建立 P2P 连接…':'等待另一台设备加入…';if(m.type==='peer-joined'){if(!peer)createPC(true)}if(m.type==='peer-left'){resetPeer('对方已离开房间');setStatus('对方已离开，等待重新连接','warn')}if(m.type==='error')$('peer').textContent=m.message;if(m.type==='signal'){if(m.data.kind==='offer'){const pc=createPC(false);await pc.setRemoteDescription(m.data.sdp);await flushPendingIce(pc);const a=await pc.createAnswer();await pc.setLocalDescription(a);signal({kind:'answer',sdp:pc.localDescription})}else if(m.data.kind==='answer'&&peer){await peer.setRemoteDescription(m.data.sdp);await flushPendingIce(peer)}else if(m.data.kind==='ice'){await addRemoteIce(m.data.candidate)}}}}
 $('joinBtn').onclick=()=>join($('roomInput').value);
+$('pickBtn').onclick=()=>$('picker').click();
 $('picker').onchange=e=>{enqueueFiles([...e.target.files]);e.target.value=''};
-$('drop').onclick=e=>{if(e.target.tagName!=='INPUT')$('picker').click()};
 $('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('over')};
 $('drop').ondragleave=()=>$('drop').classList.remove('over');
 $('drop').ondrop=e=>{e.preventDefault();$('drop').classList.remove('over');enqueueFiles([...e.dataTransfer.files])};
